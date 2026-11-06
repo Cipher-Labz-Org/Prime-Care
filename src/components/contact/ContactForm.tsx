@@ -3,6 +3,8 @@ import type { FormEvent } from "react";
 import { useToast } from "../../context/ToastContext";
 import { contactSubjects } from "../../data/contactData";
 import { USER_MESSAGES } from "../../utils/userMessages";
+import { trackGa4GenerateLead } from "../../utils/googleAnalytics";
+import { trackMetaContact, trackMetaLead } from "../../utils/metaPixel";
 import Button from "../ui/Button";
 
 const inputClass =
@@ -50,6 +52,9 @@ function ContactForm() {
       setSuccess(
         "Thank you for contacting PremierCare. Our team will respond within one business day.",
       );
+      trackMetaLead("contact_form");
+      trackMetaContact("contact_form");
+      trackGa4GenerateLead("contact_form");
       showToast(USER_MESSAGES.contactSuccess);
       setFullName("");
       setEmail("");

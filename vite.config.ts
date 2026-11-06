@@ -2,8 +2,29 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
 
+/** Local Openskylabz API Gateway (Channelling public APIs). Override with VITE_CHANNELING_API_PROXY. */
+function resolveChannelingProxyTarget(raw?: string): string {
+  const fallback = "http://127.0.0.1:7000";
+  const target = raw?.trim() || fallback;
+  try {
+    const url = new URL(target);
+    if (url.hostname === "localhost") {
+      url.hostname = "127.0.0.1";
+      return url.toString().replace(/\/$/, "");
+    }
+    return target.replace(/\/$/, "");
+  } catch {
+    return fallback;
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(async ({ command }) => {
+  const channelingProxyTarget = resolveChannelingProxyTarget(
+    process.env.VITE_CHANNELING_API_PROXY,
+  );
+  const reviewsProxyTarget =
+    process.env.VITE_REVIEWS_API_PROXY?.trim() || "http://127.0.0.1:7001";
   const plugins: PluginOption[] = [react(), tailwindcss()];
 
   if (command === "serve") {
@@ -21,51 +42,59 @@ export default defineConfig(async ({ command }) => {
     server: {
       proxy: {
         "/api/public/reviews": {
-          target: "http://localhost:7001",
+          target: reviewsProxyTarget,
           changeOrigin: true,
         },
         "/api/public/landing-enquiry": {
-          target: "http://localhost:7001",
+          target: reviewsProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/reviews": {
-          target: "http://localhost:7001",
+          target: reviewsProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/rmo": {
-          target: "http://localhost:7001",
+          target: reviewsProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/reception": {
-          target: "http://localhost:7001",
+          target: reviewsProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/public/discover": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/public/doctors": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/public/specializations": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
+          changeOrigin: true,
+        },
+        "/api/channeling/public/hospitals": {
+          target: channelingProxyTarget,
+          changeOrigin: true,
+        },
+        "/api/channeling/public/uploads": {
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/public/sessions": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/public/bookings": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/public/auth": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
         "/api/channeling/holds": {
-          target: "http://localhost:7001",
+          target: channelingProxyTarget,
           changeOrigin: true,
         },
       },

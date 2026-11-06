@@ -14,6 +14,8 @@ import ReviewManagementPage from "./pages/ReviewManagementPage";
 import RmoDeskPage from "./pages/RmoDeskPage";
 import ServicesPage from "./pages/ServicesPage";
 import CampaignLandingRoute from "./pages/CampaignLandingRoute";
+import MetaPixelTracker from "./components/analytics/MetaPixelTracker";
+import GoogleAnalyticsTracker from "./components/analytics/GoogleAnalyticsTracker";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -34,6 +36,8 @@ function App() {
   return (
     <BrowserRouter>
       <ReactLenis root options={{ autoRaf: true, lerp: 0.09 }}>
+        <MetaPixelTracker />
+        <GoogleAnalyticsTracker />
         <ScrollToTop />
         <Routes>
         <Route path="/" element={<HomePage />} />

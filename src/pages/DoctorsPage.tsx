@@ -32,11 +32,16 @@ import "../styles/doctors-page.css";
 
 function DoctorsPage() {
   usePageTitle("Doctors");
-  const { sessions, loading: sessionsLoading, error, reload } =
-    useDiscoverSessions();
+  const {
+    sessions,
+    loading: sessionsLoading,
+    error: sessionsError,
+    reload: reloadSessions,
+  } = useDiscoverSessions();
   const [apiDoctors, setApiDoctors] = useState<
     Awaited<ReturnType<typeof fetchPublicDoctors>>
   >([]);
+  const [apiDoctorsError, setApiDoctorsError] = useState<string | null>(null);
   const [catalogSpecializations, setCatalogSpecializations] = useState<
     string[]
   >([]);
@@ -57,7 +62,9 @@ function DoctorsPage() {
 
       if (doctorsResult.status === "fulfilled") {
         setApiDoctors(doctorsResult.value);
+        setApiDoctorsError(null);
       } else {
+        setApiDoctorsError(USER_MESSAGES.loadFailed);
         console.warn(
           "[DoctorsPage] Public doctors API unavailable; using discover sessions.",
           doctorsResult.reason,
@@ -89,12 +96,37 @@ function DoctorsPage() {
     };
   }, [mobileFiltersOpen]);
 
-  const loading = sessionsLoading || !apiDoctorsLoaded;
-
   const doctors = useMemo(
     () => buildDoctorDirectory(sessions, apiDoctors),
     [sessions, apiDoctors],
   );
+
+  const loading =
+    !apiDoctorsLoaded || (doctors.length === 0 && sessionsLoading);
+
+  const loadError =
+    apiDoctorsLoaded &&
+    !sessionsLoading &&
+    doctors.length === 0 &&
+    (apiDoctorsError ?? sessionsError);
+
+  const reload = () => {
+    void reloadSessions();
+    void (async () => {
+      setApiDoctorsLoaded(false);
+      try {
+        const rows = await fetchPublicDoctors();
+        setApiDoctors(rows);
+        setApiDoctorsError(null);
+      } catch (err) {
+        setApiDoctors([]);
+        setApiDoctorsError(USER_MESSAGES.loadFailed);
+        console.warn("[DoctorsPage] Public doctors reload failed.", err);
+      } finally {
+        setApiDoctorsLoaded(true);
+      }
+    })();
+  };
 
   const filterOptions = useMemo(
     () => deriveDoctorFilterOptions(doctors, sessions, catalogSpecializations),
@@ -163,18 +195,18 @@ function DoctorsPage() {
                 </div>
               )}
 
-              {!loading && error && (
+              {!loading && loadError && (
                 <PageState
                   variant="error"
                   icon="network"
                   title="Unable to load doctors"
-                  message={USER_MESSAGES.loadFailed}
+                  message={loadError}
                   onRetry={reload}
                   retryLabel="Try Again"
                 />
               )}
 
-              {!loading && !error && doctors.length === 0 && (
+              {!loading && !loadError && doctors.length === 0 && (
                 <PageState
                   variant="empty"
                   icon="doctors"
@@ -186,7 +218,7 @@ function DoctorsPage() {
                 />
               )}
 
-              {!loading && !error && doctors.length > 0 && (
+              {!loading && !loadError && doctors.length > 0 && (
                 <div className="doctors-layout">
                   <DoctorFiltersPanel
                     filters={filters}
