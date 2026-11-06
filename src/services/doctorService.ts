@@ -5,6 +5,7 @@ import type { DoctorProfile } from "../types/doctor";
 import { deriveDoctorsFromSessions } from "../utils/channelingUtils";
 import { resolveDoctorAvailability } from "../utils/doctorAvailability";
 import { getSessionDoctorName } from "../utils/doctorDisplayUtils";
+import { sortPublicDirectoryDoctorsForPremierCare } from "../utils/premierCarePublicDoctorOrder";
 
 const PUBLIC_DOCTORS_URL = `${CHANNELING_API_ORIGIN}/api/channeling/public/doctors`;
 const PUBLIC_SPECIALIZATIONS_URL = `${CHANNELING_API_ORIGIN}/api/channeling/public/specializations`;
@@ -335,7 +336,7 @@ export function buildDoctorDirectory(
     } satisfies DoctorProfile;
   });
 
-  return dedupeDoctorProfilesByName(profiles).sort((a, b) =>
-    a.doctorName.localeCompare(b.doctorName),
+  return sortPublicDirectoryDoctorsForPremierCare(
+    dedupeDoctorProfilesByName(profiles),
   );
 }
